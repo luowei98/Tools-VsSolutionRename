@@ -16,10 +16,15 @@ using System.IO;
 using System.Linq;
 
 
-namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.PathPaser
+namespace RobertLw.Tools.VsSolutionRename.PathPaser
 {
     public class Enumerator
     {
+        public Enumerator(string directory)
+        {
+            BaseDirectory = directory;
+            Excepts = new ExceptPatterns();
+        }
 
         public string BaseDirectory { get; private set; }
         public ExceptPatterns Excepts { get; private set; }
@@ -28,15 +33,15 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.PathPaser
         {
             directory = directory ?? BaseDirectory;
 
-            var subfiles = from dir in Directories(directory)
-                           from file in GetFiles(dir)
-                           select file;
-            foreach (var file in subfiles)
+            IEnumerable<string> subfiles = from dir in Directories(directory)
+                                           from file in GetFiles(dir)
+                                           select file;
+            foreach (string file in subfiles)
             {
                 yield return file;
             }
 
-            foreach (var file in GetFiles(directory))
+            foreach (string file in GetFiles(directory))
             {
                 yield return file;
             }
@@ -55,25 +60,19 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.PathPaser
         {
             directory = directory ?? BaseDirectory;
 
-            var dirs = from dir in Directory.GetDirectories(directory)
-                       let d = new DirectoryInfo(dir).Name
-                       where !Excepts.Folders.Any(p => p.IsMatch(d))
-                       select dir;
+            IEnumerable<string> dirs = from dir in Directory.GetDirectories(directory)
+                                       let d = new DirectoryInfo(dir).Name
+                                       where !Excepts.Folders.Any(p => p.IsMatch(d))
+                                       select dir;
 
-            foreach (var dir in dirs)
+            foreach (string dir in dirs)
             {
                 yield return dir;
-                foreach (var subdir in Directories(dir))
+                foreach (string subdir in Directories(dir))
                 {
                     yield return subdir;
                 }
             }
-        }
-
-        public Enumerator(string directory)
-        {
-            BaseDirectory = directory;
-            Excepts = new ExceptPatterns();
         }
 
         public string RelativePath(string directory)

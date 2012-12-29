@@ -17,7 +17,7 @@ using CommandLine;
 using CommandLine.Text;
 
 
-namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
+namespace RobertLw.Tools.VsSolutionRename.CommandLine
 {
     public sealed class Parameters : CommandLineOptionsBase
     {

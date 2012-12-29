@@ -1,4 +1,5 @@
 ﻿#region File Descrption
+
 // /////////////////////////////////////////////////////////////////////////////
 // 
 // Project: RobertLw.Tools.VsSolutionRename.RobertLw.Tools.VsSolutionRename
@@ -7,6 +8,7 @@
 // Create by Robert.L at 2012/10/26 10:47
 // 
 // /////////////////////////////////////////////////////////////////////////////
+
 #endregion
 
 using System;
@@ -16,41 +18,18 @@ using CommandLine;
 using Ionic.Zip;
 
 
-namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
+namespace RobertLw.Tools.VsSolutionRename.CommandLine
 {
     public class ParameterWrap
     {
-        public bool IsGood { get; private set; }
-
         private readonly TextWriter message;
-        public string Message
-        {
-            get { return message.ToString(); }
-        }
 
         private readonly Parameters parameters;
 
-        public string SourceSolutionName { get; private set; }
-
-        public string SourcePath { get; private set; }
-        public string SourceName { get; private set; }
-        public string Source { get { return Path.Combine(SourcePath, SourceName); } }
-
-        public string DestinationPath { get; private set; }
-        public string DestinationName { get; private set; }
-        public string Destination { get { return Path.Combine(DestinationPath, DestinationName); } }
-
-        public bool IsZipSource { get; private set; }
-        public bool IsZipDestination { get; private set;  }
-
-        public bool NeedRename { get; private set; }
-        public string NewName { get; private set; }
-
-        public ZipFlag PackageFlag { get; private set; }
-
-        public ParameterWrap(string[] args, TextWriter sw = null)
+        public ParameterWrap(string[] args, TextWriter message)
         {
-            message = sw ?? new StringWriter();
+            this.message = message;
+
             parameters = new Parameters();
             var parser = new CommandLineParser(new CommandLineParserSettings(message));
 
@@ -67,7 +46,7 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
                 message.Write(parameters.GetUsage());
                 return;
             }
-            
+
             if (parameters.Zip)
             {
                 PackageFlag = ZipFlag.Zip;
@@ -87,12 +66,45 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
             IsGood = GetSource() && GetDestination();
         }
 
+        public bool IsGood { get; private set; }
+
+        public string Message
+        {
+            get { return message.ToString(); }
+        }
+
+        public string SourceSolutionName { get; private set; }
+
+        public string SourcePath { get; private set; }
+        public string SourceName { get; private set; }
+
+        public string Source
+        {
+            get { return Path.Combine(SourcePath, SourceName); }
+        }
+
+        public string DestinationPath { get; private set; }
+        public string DestinationName { get; private set; }
+
+        public string Destination
+        {
+            get { return Path.Combine(DestinationPath, DestinationName); }
+        }
+
+        public bool IsZipSource { get; private set; }
+        public bool IsZipDestination { get; private set; }
+
+        public bool NeedRename { get; private set; }
+        public string NewName { get; private set; }
+
+        public ZipFlag PackageFlag { get; private set; }
+
         private bool GetSource()
         {
-            var src = parameters.SourceDestination[0];
+            string src = parameters.SourceDestination[0];
 
-            var path = Path.GetFullPath(src);
-            var pare = new DirectoryInfo(path).Parent;
+            string path = Path.GetFullPath(src);
+            DirectoryInfo pare = new DirectoryInfo(path).Parent;
             if (pare == null)
             {
                 message.WriteLine(parameters.GetUsage());
@@ -102,8 +114,8 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
             SourcePath = pare.FullName;
             SourceName = Path.GetFileName(path);
 
-            var isdir = Directory.Exists(path);
-            var isfile = File.Exists(path);
+            bool isdir = Directory.Exists(path);
+            bool isfile = File.Exists(path);
 
             if (!isdir && !isfile)
             {
@@ -121,9 +133,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
 
                 IsZipSource = true;
 
-                using (var zip = ZipFile.Read(Source))
+                using (ZipFile zip = ZipFile.Read(Source))
                 {
-                    var f = zip.SingleOrDefault(i => !i.IsDirectory && i.FileName.ToLower().EndsWith(".sln"));
+                    ZipEntry f = zip.SingleOrDefault(i => !i.IsDirectory && i.FileName.ToLower().EndsWith(".sln"));
                     if (f == null)
                     {
                         message.WriteLine(parameters.GetUsage());
@@ -134,7 +146,7 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
             }
             else
             {
-                var f = Directory.GetFiles(Source).SingleOrDefault(i => i.ToLower().EndsWith(".sln"));
+                string f = Directory.GetFiles(Source).SingleOrDefault(i => i.ToLower().EndsWith(".sln"));
                 if (f == null)
                 {
                     message.WriteLine(parameters.GetUsage());
@@ -154,7 +166,7 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine
             }
             else
             {
-                var p = parameters.SourceDestination[1].TrimEnd('\\');
+                string p = parameters.SourceDestination[1].TrimEnd('\\');
                 DestinationPath = Path.GetFullPath(p);
             }
 

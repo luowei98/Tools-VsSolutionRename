@@ -1,17 +1,20 @@
 ﻿using System;
 using System.IO;
-using Ionic.Zip;
-using RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine;
-using RobertLw.Tools.RobertLw.Tools.VsSolutionRename.PathPaser;
+using RobertLw.Tools.VsSolutionRename.CommandLine;
 
 
-namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
+namespace RobertLw.Tools.VsSolutionRename
 {
     internal class Program
     {
+        private static MessageWriter message;
+
         private static void Main(string[] args)
         {
-            var para = new ParameterWrap(args, Console.Error);
+            message = new MessageWriter();
+            message.Flushed += MessageFlushed;
+
+            var para = new ParameterWrap(args, message);
             if (!para.IsGood) Environment.Exit(1);
 
             var oper = new Operator(para);
@@ -20,5 +23,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
             Console.ReadKey();
         }
 
+        private static void MessageFlushed(object sender, EventArgs args)
+        {
+            Console.WriteLine(sender.ToString());
+        }
     }
 }

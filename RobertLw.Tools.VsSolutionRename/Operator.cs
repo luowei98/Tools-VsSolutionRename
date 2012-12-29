@@ -1,4 +1,5 @@
 ﻿#region File Descrption
+
 // /////////////////////////////////////////////////////////////////////////////
 // 
 // Project: RobertLw.Tools.VsSolutionRename.RobertLw.Tools.VsSolutionRename
@@ -7,6 +8,7 @@
 // Create by Robert.L at 2012/12/26 16:29
 // 
 // /////////////////////////////////////////////////////////////////////////////
+
 #endregion
 
 using System;
@@ -14,21 +16,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Ionic.Zip;
-using RobertLw.Tools.RobertLw.Tools.VsSolutionRename.CommandLine;
-using RobertLw.Tools.RobertLw.Tools.VsSolutionRename.PathPaser;
+using RobertLw.Tools.VsSolutionRename.CommandLine;
+using RobertLw.Tools.VsSolutionRename.PathPaser;
 
 
-namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
+namespace RobertLw.Tools.VsSolutionRename
 {
     public class Operator
     {
-        public ParameterWrap Parameter { get; private set; }
-
-
-        private string sourcePath;
-        private readonly string sourceZip;
         private readonly string destinationPath;
         private readonly string destinationZip;
+        private readonly string sourceZip;
+        private string sourcePath;
 
         public Operator(ParameterWrap parameter)
         {
@@ -57,6 +56,8 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
             }
         }
 
+        public ParameterWrap Parameter { get; private set; }
+
         public void Doit()
         {
             Unzip();
@@ -68,9 +69,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
         {
             if (!Parameter.IsZipSource) return;
 
-            var dir = GetRandomTempPath();
+            string dir = GetRandomTempPath();
 
-            using (var zip = ZipFile.Read(sourceZip))
+            using (ZipFile zip = ZipFile.Read(sourceZip))
             {
                 zip.ExtractAll(dir);
             }
@@ -81,8 +82,8 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
         private void CleanCopyRename()
         {
             var src = new Enumerator(sourcePath);
-            var oldname = Parameter.SourceSolutionName;
-            var newname = Parameter.DestinationName;
+            string oldname = Parameter.SourceSolutionName;
+            string newname = Parameter.DestinationName;
             if (newname.ToLower().EndsWith(".zip"))
             {
                 newname = newname.Substring(0, newname.Length - 4);
@@ -93,9 +94,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
                 throw new Exception("destination directory is exist.");
             }
 
-            foreach (var d in src.Directories())
+            foreach (string d in src.Directories())
             {
-                var np = src.RelativePath(d);
+                string np = src.RelativePath(d);
                 if (Parameter.NeedRename)
                 {
                     np = np.Replace(oldname, newname);
@@ -103,24 +104,24 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
                 Directory.CreateDirectory(Path.Combine(destinationPath, np));
             }
 
-            foreach (var f in src.Files())
+            foreach (string f in src.Files())
             {
-                var nf = src.RelativePath(f);
+                string nf = src.RelativePath(f);
                 if (Parameter.NeedRename)
                 {
                     nf = nf.Replace(oldname, newname);
                 }
 
-                var fp = Path.Combine(destinationPath, nf);
+                string fp = Path.Combine(destinationPath, nf);
                 File.Copy(f, fp);
-                
+
                 if (Parameter.NeedRename)
                 {
                     File.WriteAllLines(
                         fp,
                         File.ReadAllLines(fp).Select(l => l.Replace(oldname, newname)),
                         Encoding.UTF8
-                    );
+                        );
                 }
             }
         }
@@ -133,9 +134,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
             {
                 var src = new Enumerator(destinationPath);
 
-                foreach (var file in src.Files())
+                foreach (string file in src.Files())
                 {
-                    var p = Path.GetDirectoryName(file);
+                    string p = Path.GetDirectoryName(file);
                     zip.AddFile(file, src.RelativePath(p));
                 }
 
@@ -145,9 +146,9 @@ namespace RobertLw.Tools.RobertLw.Tools.VsSolutionRename
 
         private string GetRandomTempPath()
         {
-            var p = Path.GetTempPath();
-            var f = Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) ??
-                    DateTime.Now.ToString("yyyyMMddhhmmss");
+            string p = Path.GetTempPath();
+            string f = Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) ??
+                       DateTime.Now.ToString("yyyyMMddhhmmss");
 
             return Path.Combine(p, f);
         }
